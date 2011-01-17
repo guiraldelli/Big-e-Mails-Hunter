@@ -1,0 +1,5 @@
+The "GMail IMAP Size Searcher" connects to your GMail account and searches for e-mails larger than a specified size (in megabytes). It is an (geek) alternative to http://www.findbigmail.com/ .
+
+The script is written in Python using, solely, the standard language library [ http://docs.python.org/library/ ] and the IMAP standard [ http://tools.ietf.org/html/rfc3501 ].
+
+Of course this script can be improved... and you are invited to do it! (I almost forgot: it is BSD licensed.)
