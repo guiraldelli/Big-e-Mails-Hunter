@@ -20,6 +20,7 @@ import getpass
 import os
 
 
+#imaplib.Debug = 4
 
 # copied from http://docs.python.org/library/imaplib.html
 
@@ -32,22 +33,25 @@ def parse_list_response(line):
 
 # FIXME: not sure if it works always. see: http://bugs.python.org/issue5305
 def decode_modified_utf7(s):
-    s = s.replace('&', '+')
     ascii_mode = 1
+    r = [ 0 ] * len(s)
     for i in range(len(s)):
+        r[i] = s[i]
         if ascii_mode:
-            if s[i] == '&':
+            if r[i] == '&':
                 ascii_mode = 0
-                s[i] = '+'
+                r[i] = '+'
         else:
-            if s[i] == ',':
-                s[i] = '/'
-            elif s[i] == '-':
+            if r[i] == ',':
+                r[i] = '/'
+            elif r[i] == '-':
                 ascii_mode = 1
+    # list -> str
+    r = ''.join(r)
     # workaround for http://bugs.python.org/issue4425
-    s = s.replace('/', '+AC8-')
-    s = s.decode('utf7')
-    return s
+    r = r.replace('/', '+AC8-')
+    r = r.decode('utf7')
+    return r
 
 
 
@@ -154,7 +158,7 @@ def process(host, port, username, password, size, use_ssl=False):
     # create destination mailbox, if new
     status, data = imap_connection.create(dest)
     if status == 'NO':
-	    pass
+        pass
         # we can ignore this failure assuming it is about a preexisting mailbox
         # if it is not the case, than the copy will fail next
 
