@@ -89,7 +89,7 @@ def process(host, port, username, password, size, use_ssl=False):
     # FIXME: make this a parameter
     dest = 'BIGMAIL'
 
-    safe_print "\t Connecting to %s:%d..." % (host, port)
+    safe_print("\t Connecting to %s:%d..." % (host, port))
 
     # connect to IMAP server
     if use_ssl:
@@ -113,7 +113,7 @@ def process(host, port, username, password, size, use_ssl=False):
         decoded = decode_modified_utf7(boxes[ibox])
         if decoded == '[Gmail]/All Mail':
             box = ibox + 1
-        safe_print "%d. %s" % (ibox + 1, decoded)
+        safe_print("%d. %s" % (ibox + 1, decoded))
 
     # prompt for a mailbox
     box = boxes[int(input_or_default("Mailbox", str(box))) - 1]
@@ -121,16 +121,16 @@ def process(host, port, username, password, size, use_ssl=False):
     # select mailbox
     status, data = imap_connection.select(box)
     if status == 'NO':
-        safe_print data
+        safe_print(data)
 
     # print mailbox status
-    safe_print "\tYou have %s messages in mailbox '%s'." % (data[0], decode_modified_utf7(box))
+    safe_print("\tYou have %s messages in mailbox '%s'." % (data[0], decode_modified_utf7(box)))
 
     remsgsize = re.compile("(\d+) \(RFC822.SIZE (\d+).*\)")
 
     msg_set = StringIO.StringIO()
 
-    safe_print "\tLooking up big e-mails..."
+    safe_print("\tLooking up big e-mails...")
 
     status, data = imap_connection.fetch('1:*', '(RFC822.SIZE)')
     count = 0
@@ -140,7 +140,7 @@ def process(host, port, username, password, size, use_ssl=False):
         msgsize = int(match.group(2))
 
         if msgsize >= size:
-            #safe_print "to move: id=" + str(msgid) + ", size=" + str(msgsize)
+            #safe_print("to move: id=" + str(msgid) + ", size=" + str(msgsize))
             msg_set.write(str(msgid))
             msg_set.write(",")
             count = count + 1
@@ -152,10 +152,10 @@ def process(host, port, username, password, size, use_ssl=False):
     # StringIO -> str
     msg_set = msg_set.getvalue()
 
-    #safe_print msg_set
+    #safe_print(msg_set)
     test_fetch_dump_subject(imap_connection, msg_set)
 
-    safe_print "\tDone. %d e-mails found. Copying to mailbox '%s'..." % (count, dest)
+    safe_print("\tDone. %d e-mails found. Copying to mailbox '%s'..." % (count, dest))
 
     # create destination mailbox, if new
     status, data = imap_connection.create(dest)
@@ -167,7 +167,7 @@ def process(host, port, username, password, size, use_ssl=False):
     # copy to destination mailbox
     status, data = imap_connection.copy(msg_set, dest)
     if status == 'NO':
-        safe_print data
+        safe_print(data)
 
     # TODO: remove e-mails from original mailbox when it makes sense
     # users generally want to _move_ big e-mails to separate mailboxes.
@@ -182,7 +182,7 @@ def process(host, port, username, password, size, use_ssl=False):
     imap_connection.logout()
     imap_connection.shutdown()
 
-    safe_print "\tDone!"
+    safe_print("\tDone!")
 
 
 
@@ -203,7 +203,7 @@ def test_dump_subject(header):
     subcharset = data[0][1]
     if subcharset != None:
         sub = sub.decode(subcharset)
-    safe_print '\tSubject: [%s].' % (sub)
+    safe_print('\tSubject: [%s].' % (sub))
 
 
 #test()
