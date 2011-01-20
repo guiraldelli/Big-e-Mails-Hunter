@@ -18,7 +18,7 @@ import StringIO
 import email.header
 import getpass
 import os
-
+import sys
 
 #imaplib.Debug = 4
 
