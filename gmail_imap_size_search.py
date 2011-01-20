@@ -56,7 +56,7 @@ def decode_modified_utf7(s):
 
 def safe_print(u):
     u = u.encode(sys.stdout.encoding, 'replace')
-    print u
+    print(u)
 
 def test():
     process('imap.gmail.com', 993, 'any@gmail.com', 'thing', 10 * 1024 * 1024, True)
