@@ -2,6 +2,8 @@
 
 #    BSD LICENSE:
 #    Copyright (c) 2011, Ricardo H Gracini Guiraldelli <rguira@acm.org>
+#    Copyright (c) 2011, Pedro Pedruzzi <pedro.pedruzzi@gmail.com>
+#    Copyright (c) 2011, Lucas De Marchi <lucas.de.marchi@gmail.com>
 #    All rights reserved.
 #
 #    Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
