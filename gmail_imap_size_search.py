@@ -154,28 +154,32 @@ def process(host, port, username, password, size, use_ssl=False):
     # StringIO -> str
     msg_set = msg_set.getvalue()
 
-    #safe_print(msg_set)
+    safe_print("\tDone. %d e-mails found." % count)
     test_fetch_dump_subject(imap_connection, msg_set)
 
-    safe_print("\tDone. %d e-mails found. Copying to mailbox '%s'..." % (count, dest))
+    if count == 0:
+        safe_print("\tNothing to do. Closing connection")
+    else:
+        safe_print("\tCopying emails to mailbox '%s'..." % dest)
 
-    # create destination mailbox, if new
-    status, data = imap_connection.create(dest)
-    if status == 'NO':
-        pass
-        # we can ignore this failure assuming it is about a preexisting mailbox
-        # if it is not the case, than the copy will fail next
+        # create destination mailbox, if new
+        status, data = imap_connection.create(dest)
+        if status == 'NO':
+            pass
+            # we can ignore this failure assuming it is about a preexisting mailbox
+            # if it is not the case, than the copy will fail next
 
-    # copy to destination mailbox
-    status, data = imap_connection.copy(msg_set, dest)
-    if status == 'NO':
-        safe_print(data)
+        # copy to destination mailbox
+        status, data = imap_connection.copy(msg_set, dest)
+        if status == 'NO':
+            safe_print(data)
 
-    # TODO: remove e-mails from original mailbox when it makes sense
-    # users generally want to _move_ big e-mails to separate mailboxes.
-    # however, some mail servers (like google's for instance) have a label/tag
-    # semantics for mailboxes thus making no point in removing a big e-mail
-    # from such a mailbox.
+        # TODO: remove e-mails from original mailbox when it makes sense
+        # users generally want to _move_ big e-mails to separate mailboxes.
+        # however, some mail servers (like google's for instance) have a label/tag
+        # semantics for mailboxes thus making no point in removing a big e-mail
+        # from such a mailbox.
+        safe_print("\tDone! Closing connection")
 
     # close and sync selected mailbox
     imap_connection.close()
@@ -184,12 +188,12 @@ def process(host, port, username, password, size, use_ssl=False):
     imap_connection.logout()
     imap_connection.shutdown()
 
-    safe_print("\tDone!")
-
-
-
 
 def test_fetch_dump_subject(conn, message_set):
+
+    if not message_set:
+        return
+
     status, data = conn.fetch(message_set, '(BODY[HEADER.FIELDS (SUBJECT)])')
     for piece in data:
         if isinstance(piece, tuple):
