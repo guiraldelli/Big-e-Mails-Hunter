@@ -27,6 +27,11 @@ import sys
 # copied from http://docs.python.org/library/imaplib.html
 
 list_response_pattern = re.compile(r'\((?P<flags>.*?)\) "(?P<delimiter>.*)" (?P<name>.*)')
+if sys.stdout.isatty() and sys.stdout.encoding != None:
+    default_encoding = sys.stdout.encoding
+else:
+    import locale
+    default_encoding = locale.getpreferredencoding()
 
 def parse_list_response(line):
     flags, delimiter, mailbox_name = list_response_pattern.match(line).groups()
@@ -57,7 +62,7 @@ def decode_modified_utf7(s):
 
 
 def safe_print(u):
-    u = u.encode(sys.stdout.encoding, 'replace')
+    u = u.encode(default_encoding, 'replace')
     print(u)
 
 def test():
