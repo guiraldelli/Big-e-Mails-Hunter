@@ -171,7 +171,7 @@ def process(host, port, username, password, size, use_ssl=False):
     msg_set = msg_set.getvalue()
 
     safe_print("\tDone. %d e-mails found." % count)
-    test_fetch_dump_subject(imap_connection, msg_set)
+    fetch_dump_subject(imap_connection, msg_set)
 
     if count == 0:
         safe_print("\tNothing to do. Closing connection")
@@ -205,17 +205,16 @@ def process(host, port, username, password, size, use_ssl=False):
     imap_connection.shutdown()
 
 
-def test_fetch_dump_subject(conn, message_set):
-
+def fetch_dump_subject(conn, message_set):
     if not message_set:
         return
 
     status, data = conn.fetch(message_set, '(BODY[HEADER.FIELDS (SUBJECT)])')
     for piece in data:
         if isinstance(piece, tuple):
-            test_dump_subject(piece[1])
+            dump_subject(piece[1])
 
-def test_dump_subject(header):
+def dump_subject(header):
     # workaround for http://bugs.python.org/issue504152
     header = header.replace('\r\n ', ' ')
     msg = rfc822.Message(StringIO.StringIO(header))
