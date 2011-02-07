@@ -25,17 +25,22 @@ from optparse import OptionParser
 
 USAGE = "%prog [OPTIONS]"
 VERSION = '0.1'
+default_encoding = sys.stdout.encoding
 
 # copied from http://docs.python.org/library/imaplib.html
 list_response_pattern = re.compile(r'\((?P<flags>.*?)\) "(?P<delimiter>.*)" (?P<name>.*)')
 
 #imaplib.Debug = 4
 
-if sys.stdout.isatty() and sys.stdout.encoding != None:
-    default_encoding = sys.stdout.encoding
-else:
-    import locale
-    default_encoding = locale.getpreferredencoding()
+def setup_encoding():
+    global default_encoding
+
+    if not default_encoding or not sys.stdout.isatty():
+        import locale
+        default_encoding = locale.getpreferredencoding()
+
+    if not default_encoding:
+        default_encoding = 'ascii'
 
 def parse_list_response(line):
     flags, delimiter, mailbox_name = list_response_pattern.match(line).groups()
@@ -204,6 +209,7 @@ def parse_options(args):
 
 def main(*args):
     parse_options(args)
+    setup_encoding()
 
     host = input_or_default('IMAP server hostname', 'imap.gmail.com')
 
