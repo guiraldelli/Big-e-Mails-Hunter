@@ -26,11 +26,11 @@ from optparse import OptionParser
 USAGE = "%prog [OPTIONS]"
 VERSION = '0.1'
 
+# copied from http://docs.python.org/library/imaplib.html
+list_response_pattern = re.compile(r'\((?P<flags>.*?)\) "(?P<delimiter>.*)" (?P<name>.*)')
+
 #imaplib.Debug = 4
 
-# copied from http://docs.python.org/library/imaplib.html
-
-list_response_pattern = re.compile(r'\((?P<flags>.*?)\) "(?P<delimiter>.*)" (?P<name>.*)')
 if sys.stdout.isatty() and sys.stdout.encoding != None:
     default_encoding = sys.stdout.encoding
 else:
@@ -64,44 +64,36 @@ def decode_modified_utf7(s):
     r = r.decode('utf7')
     return r
 
+def fetch_dump_subject(conn, message_set):
+    if not message_set:
+        return
+
+    status, data = conn.fetch(message_set, '(BODY[HEADER.FIELDS (SUBJECT)])')
+    for piece in data:
+        if isinstance(piece, tuple):
+            dump_subject(piece[1])
+
+def dump_subject(header):
+    # workaround for http://bugs.python.org/issue504152
+    header = header.replace('\r\n ', ' ')
+    msg = rfc822.Message(StringIO.StringIO(header))
+    sub = msg["subject"]
+    data = email.header.decode_header(sub)
+    sub = data[0][0]
+    subcharset = data[0][1]
+    if subcharset != None:
+        sub = sub.decode(subcharset)
+    safe_print('\tSubject: [%s].' % (sub))
 
 def safe_print(u):
     u = u.encode(default_encoding, 'replace')
     print(u)
-
-def test():
-    process('imap.gmail.com', 993, 'any@gmail.com', 'thing', 10 * 1024 * 1024, True)
 
 def input_or_default(prompt, default):
     ret = raw_input("%s (default: %s): " % (prompt, default))
     if len(ret) == 0:
         ret = default
     return ret
-
-def parse_options(args):
-    parser = OptionParser(usage=USAGE, version=VERSION)
-
-    return parser.parse_args()
-
-def main(*args):
-    parse_options(args)
-
-    host = input_or_default('IMAP server hostname', 'imap.gmail.com')
-
-    port = int(input_or_default('IMAP server port', '993'))
-
-    username = raw_input('Login: ')
-
-    password = getpass.getpass('Password: ')
-
-    size = int(input_or_default('Minimum size in MB', '10'))
-
-    # convert to bytes
-    size = size * 1024 * 1024
-
-    process(host, port, username, password, size, True)
-
-
 
 def process(host, port, username, password, size, use_ssl=False):
     # FIXME: make this a parameter
@@ -205,29 +197,37 @@ def process(host, port, username, password, size, use_ssl=False):
     imap_connection.shutdown()
 
 
-def fetch_dump_subject(conn, message_set):
-    if not message_set:
-        return
+def parse_options(args):
+    parser = OptionParser(usage=USAGE, version=VERSION)
 
-    status, data = conn.fetch(message_set, '(BODY[HEADER.FIELDS (SUBJECT)])')
-    for piece in data:
-        if isinstance(piece, tuple):
-            dump_subject(piece[1])
+    return parser.parse_args()
 
-def dump_subject(header):
-    # workaround for http://bugs.python.org/issue504152
-    header = header.replace('\r\n ', ' ')
-    msg = rfc822.Message(StringIO.StringIO(header))
-    sub = msg["subject"]
-    data = email.header.decode_header(sub)
-    sub = data[0][0]
-    subcharset = data[0][1]
-    if subcharset != None:
-        sub = sub.decode(subcharset)
-    safe_print('\tSubject: [%s].' % (sub))
+def main(*args):
+    parse_options(args)
 
+    host = input_or_default('IMAP server hostname', 'imap.gmail.com')
 
-#test()
+    port = int(input_or_default('IMAP server port', '993'))
+
+    username = raw_input('Login: ')
+
+    password = getpass.getpass('Password: ')
+
+    size = int(input_or_default('Minimum size in MB', '10'))
+
+    # convert to bytes
+    size = size * 1024 * 1024
+
+    process(host, port, username, password, size, True)
+
 
 if __name__ == '__main__':
     sys.exit(main(*sys.argv))
+
+
+########################## TESTS
+
+def test():
+    process('imap.gmail.com', 993, 'any@gmail.com', 'thing', 10 * 1024 * 1024, True)
+
+#test()
