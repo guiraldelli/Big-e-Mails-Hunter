@@ -21,6 +21,10 @@ import email.header
 import getpass
 import os
 import sys
+from optparse import OptionParser
+
+USAGE = "%prog [OPTIONS]"
+VERSION = '0.1'
 
 #imaplib.Debug = 4
 
@@ -74,7 +78,14 @@ def input_or_default(prompt, default):
         ret = default
     return ret
 
-def interative():
+def parse_options(args):
+    parser = OptionParser(usage=USAGE, version=VERSION)
+
+    return parser.parse_args()
+
+def main(*args):
+    parse_options(args)
+
     host = input_or_default('IMAP server hostname', 'imap.gmail.com')
 
     port = int(input_or_default('IMAP server port', '993'))
@@ -219,4 +230,5 @@ def test_dump_subject(header):
 
 #test()
 
-interative()
+if __name__ == '__main__':
+    sys.exit(main(*sys.argv))
