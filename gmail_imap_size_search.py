@@ -26,6 +26,12 @@ from optparse import OptionParser
 USAGE = "%prog [OPTIONS]"
 VERSION = '0.1'
 default_encoding = sys.stdout.encoding
+options = None
+options_defaults = {
+        'host': 'imap.gmail.com',
+        'port': '993',
+        'size': '10'
+}
 
 # copied from http://docs.python.org/library/imaplib.html
 list_response_pattern = re.compile(r'\((?P<flags>.*?)\) "(?P<delimiter>.*)" (?P<name>.*)')
@@ -94,10 +100,19 @@ def safe_print(u):
     u = u.encode(default_encoding, 'replace')
     print(u)
 
-def input_or_default(prompt, default):
-    ret = raw_input("%s (default: %s): " % (prompt, default))
-    if len(ret) == 0:
-        ret = default
+def input_or_default(prompt, option):
+    global options
+
+    if not (option is None) and not (options.__dict__[option] is None):
+        return options.__dict__[option]
+
+    if option in options_defaults:
+        ret = raw_input("%s [ %s ]: " % (prompt, options_defaults[option]))
+        if len(ret) == 0:
+            ret = options_defaults[option]
+    else:
+        ret = raw_input("%s: " % prompt)
+
     return ret
 
 def process(host, port, username, password, size, use_ssl=False):
@@ -131,7 +146,7 @@ def process(host, port, username, password, size, use_ssl=False):
         safe_print("%d. %s" % (ibox + 1, decoded))
 
     # prompt for a mailbox
-    box = boxes[int(input_or_default("Mailbox", str(box))) - 1]
+    box = boxes[int(input_or_default("Mailbox", None)) - 1]
 
     # select mailbox
     status, data = imap_connection.select(box)
@@ -204,22 +219,29 @@ def process(host, port, username, password, size, use_ssl=False):
 
 def parse_options(args):
     parser = OptionParser(usage=USAGE, version=VERSION)
+    parser.add_option('-H', '--host', type='string',
+                        help='IMAP server hostname')
+    parser.add_option('-p', '--port', type='string',
+                        help='IMAP server port')
+    parser.add_option('-u', '-U', '--user', type='string',
+                        help='IMAP username')
+    parser.add_option('-s', '--size', type='string',
+                        help='Min email size to search for')
 
     return parser.parse_args()
 
 def main(*args):
-    parse_options(args)
+    global options
+
+    options, args = parse_options(args)
     setup_encoding()
 
-    host = input_or_default('IMAP server hostname', 'imap.gmail.com')
+    host = input_or_default('IMAP server hostname', 'host')
+    port = int(input_or_default('IMAP server port', 'port'))
+    size = int(input_or_default('Minimum size in MB', 'size'))
 
-    port = int(input_or_default('IMAP server port', '993'))
-
-    username = raw_input('Login: ')
-
+    username = input_or_default('Login', 'user')
     password = getpass.getpass('Password: ')
-
-    size = int(input_or_default('Minimum size in MB', '10'))
 
     # convert to bytes
     size = size * 1024 * 1024
