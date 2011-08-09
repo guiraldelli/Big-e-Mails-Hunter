@@ -88,13 +88,16 @@ def dump_subject(header):
     # workaround for http://bugs.python.org/issue504152
     header = header.replace('\r\n ', ' ')
     msg = rfc822.Message(StringIO.StringIO(header))
-    sub = msg["subject"]
-    data = email.header.decode_header(sub)
-    sub = data[0][0]
-    subcharset = data[0][1]
-    if subcharset != None:
-        sub = sub.decode(subcharset)
-    safe_print('\tSubject: [%s].' % (sub))
+    if (msg.has_key("subject")):
+        sub = msg["subject"]
+        data = email.header.decode_header(sub)
+        sub = data[0][0]
+        subcharset = data[0][1]
+        if subcharset != None:
+            sub = sub.decode(subcharset)
+        safe_print('\tSubject: [%s].' % (sub))
+    else:
+        safe_print('\tSubject: [%s].' % ("[no subject]"))
 
 def safe_print(u):
     u = u.encode(default_encoding, 'replace')
